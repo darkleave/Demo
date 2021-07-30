@@ -27,7 +27,8 @@ public class RedisConfig {
         config.setTransportMode(TransportMode.NIO);
         List<Class<?>> classList = new ArrayList<>();
         classList.add(Test1.class);
-
+        // redisson 支持的序列化方式 https://github.com/redisson/redisson/wiki/4.-%E6%95%B0%E6%8D%AE%E5%BA%8F%E5%88%97%E5%8C%96
+        // https://github.com/eishay/jvm-serializers/wiki 序列化方式性能比较
         KryoCodec kryo = new KryoCodec(classList);
         //kryoCodec 维护了一个kryo 先进先出的队列，每次存储的时候弹出
         // 一个kryo对象，没有就新增一个，序列化完成之后，再将该对象插入队尾中
