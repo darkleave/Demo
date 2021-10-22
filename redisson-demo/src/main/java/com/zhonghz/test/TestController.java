@@ -2,9 +2,7 @@ package com.zhonghz.test;
 
 import com.zhonghz.util.Test;
 import com.zhonghz.util.Test1;
-import org.redisson.api.RBucket;
-import org.redisson.api.RLiveObjectService;
-import org.redisson.api.RedissonClient;
+import org.redisson.api.*;
 import org.redisson.codec.KryoCodec;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -15,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -69,6 +68,29 @@ public class TestController {
             result.setName("aaaa");
         }
         return result;
+    }
+
+    @RequestMapping(method = RequestMethod.GET , value="/testRateLimiter")
+    public Object testRateLimiter() throws InterruptedException {
+        RRateLimiter rateLimiter = client.getRateLimiter("myRateLimiter");
+        // 初始化
+        // 最大流速 = 每1秒钟产生10个令牌
+        rateLimiter.setRate(RateType.OVERALL, 1, 1, RateIntervalUnit.SECONDS);
+//        rateLimiter.trySetRate()tryset 和set有何不同
+//        CountDownLatch latch = new CountDownLatch(10);
+        // ...
+        for(int i = 0;i < 100;i++){
+            Thread t = new Thread(() -> {
+                boolean result = rateLimiter.tryAcquire();
+                System.out.println("获取结果:" + result);
+                System.out.println("aviable:" + rateLimiter.availablePermits());
+                // ...
+            });
+            Thread.currentThread().sleep(100);
+            t.start();
+        }
+
+        return true;
     }
 
 }
